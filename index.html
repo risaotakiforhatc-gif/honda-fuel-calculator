@@ -763,11 +763,18 @@
           <span data-lang="en">Fuel Price (THB/L)</span>
           <span data-lang="ja">ガソリン価格 (バーツ/L)</span>
         </label>
-     <select id="fuelPrice"></select>
+   <select id="fuelPrice">
+  <option value="">กำลังโหลดราคา...</option>
+</select>
+
 <div id="customPriceWrap" style="display:none">
-  <input type="number" id="customPrice" placeholder="e.g. 35" min="10" max="100" step="0.1" oninput="updateCustomPrice()" data-clarity-unmask>
+  <input type="number" id="customPrice" placeholder="e.g. 35"
+         min="10" max="100" step="0.1"
+         oninput="updateCustomPrice()" data-clarity-unmask>
 </div>
+
 <div id="fuelPriceUpdatedAt" style="margin-top:6px; font-size:11px; color:#666;"></div>
+
         <div id="customPriceWrap" style="display:none">
           <input type="number" id="customPrice" placeholder="e.g. 35" min="10" max="100" step="0.1" oninput="updateCustomPrice()" data-clarity-unmask>
         </div>
@@ -1304,8 +1311,7 @@ function calculate() {
 
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-</script>
-  async function loadFuelPrices() {
+   async function loadFuelPrices() {
   const sel = document.getElementById('fuelPrice');
   const updatedEl = document.getElementById('fuelPriceUpdatedAt');
 
@@ -1371,13 +1377,12 @@ function calculate() {
     }
   } catch (e) {
     // 読めない場合はフォールバック（最低限）
-    sel.innerHTML = `
-      <option value="28" data-th="E20 (fallback 28)" data-en="E20 (fallback 28)" data-ja="E20（代替 28）">E20 (fallback 28)</option>
-      <option value="31" data-th="91 (fallback 31)" data-en="91 (fallback 31)" data-ja="91（代替 31）">91 (fallback 31)</option>
-      <option value="31" data-th="95 (fallback 31)" data-en="95 (fallback 31)" data-ja="95（代替 31）">95 (fallback 31)</option>
-      <option value="custom" data-th="กรอกค่าเอง..." data-en="Enter manually..." data-ja="手入力...">กรอกค่าเอง...</option>
-    `;
-    if (updatedEl) updatedEl.textContent = '';
+   sel.innerHTML = `
+  <option value="28" data-th="Gasohol E20 (fallback ฿28)" data-en="Gasohol E20 (fallback ฿28)">Gasohol E20 (fallback ฿28)</option>
+  <option value="31" data-th="Gasohol 91 (fallback ฿31)" data-en="Gasohol 91 (fallback ฿31)">Gasohol 91 (fallback ฿31)</option>
+  <option value="31" data-th="Gasohol 95 (fallback ฿31)" data-en="Gasohol 95 (fallback ฿31)">Gasohol 95 (fallback ฿31)</option>
+  <option value="custom" data-th="กรอกค่าเอง..." data-en="Enter manually...">กรอกค่าเอง...</option>
+`;
   }
 }
 
@@ -1400,6 +1405,8 @@ setLang = function(lang) {
 
 document.addEventListener('DOMContentLoaded', function() {
   loadFuelPrices();
+</script>
+ 
 });
 </body>
 </html>
