@@ -1305,5 +1305,101 @@ function calculate() {
   panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
+  async function loadFuelPrices() {
+  const sel = document.getElementById('fuelPrice');
+  const updatedEl = document.getElementById('fuelPriceUpdatedAt');
+
+  // まずは読み込み中のプレースホルダ
+  sel.innerHTML = '';
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = currentLang === 'th' ? 'กำลังโหลดราคา...' : currentLang === 'ja' ? '価格を読み込み中...' : 'Loading prices...';
+  sel.appendChild(ph);
+
+  try {
+    const res = await fetch('./public/fuel-prices.json?ts=' + Date.now());
+    if (!res.ok) throw new Error('fuel-prices.json not found');
+    const data = await res.json();
+
+    const p95 = data?.prices?.gasohol95?.price;
+    const pe20 = data?.prices?.gasohole20?.price;
+    const p91 = data?.prices?.gasohol91?.price;
+
+    // 作り直し
+    sel.innerHTML = '';
+
+    // 先頭プレースホルダ
+    const head = document.createElement('option');
+    head.value = '';
+    head.textContent = currentLang === 'th' ? 'เลือกประเภทน้ำมัน' : currentLang === 'ja' ? '燃料種を選択' : 'Select fuel type';
+    sel.appendChild(head);
+
+    // 3種を追加（valueは数値文字列＝既存のcalculateがそのまま動く）
+    const items = [
+      { price: pe20, th: `Gasohol E20 (฿${Number(pe20).toFixed(2)})`, en: `Gasohol E20 (฿${Number(pe20).toFixed(2)})`, ja: `Gasohol E20（฿${Number(pe20).toFixed(2)}）` },
+      { price: p91,  th: `Gasohol 91 (฿${Number(p91).toFixed(2)})`,  en: `Gasohol 91 (฿${Number(p91).toFixed(2)})`,  ja: `Gasohol 91（฿${Number(p91).toFixed(2)}）` },
+      { price: p95,  th: `Gasohol 95 (฿${Number(p95).toFixed(2)})`,  en: `Gasohol 95 (฿${Number(p95).toFixed(2)})`,  ja: `Gasohol 95（฿${Number(p95).toFixed(2)}）` },
+    ];
+
+    items.forEach(it => {
+      if (typeof it.price !== 'number' || !isFinite(it.price)) return;
+      const opt = document.createElement('option');
+      opt.value = String(it.price);
+      opt.setAttribute('data-th', it.th);
+      opt.setAttribute('data-en', it.en);
+      opt.setAttribute('data-ja', it.ja);
+      opt.textContent = currentLang === 'th' ? it.th : currentLang === 'ja' ? it.ja : it.en;
+      sel.appendChild(opt);
+    });
+
+    // Custom option
+    const custom = document.createElement('option');
+    custom.value = 'custom';
+    custom.setAttribute('data-th', 'กรอกค่าเอง...');
+    custom.setAttribute('data-en', 'Enter manually...');
+    custom.setAttribute('data-ja', '手入力...');
+    custom.textContent = currentLang === 'th' ? 'กรอกค่าเอง...' : currentLang === 'ja' ? '手入力...' : 'Enter manually...';
+    sel.appendChild(custom);
+
+    // 更新日時表示
+    if (updatedEl && data?.fetchedAt) {
+      const dt = new Date(data.fetchedAt).toLocaleString();
+      updatedEl.textContent =
+        currentLang === 'th' ? `อัปเดตล่าสุด: ${dt}` :
+        currentLang === 'ja' ? `最終更新: ${dt}` :
+        `Last updated: ${dt}`;
+    }
+  } catch (e) {
+    // 読めない場合はフォールバック（最低限）
+    sel.innerHTML = `
+      <option value="28" data-th="E20 (fallback 28)" data-en="E20 (fallback 28)" data-ja="E20（代替 28）">E20 (fallback 28)</option>
+      <option value="31" data-th="91 (fallback 31)" data-en="91 (fallback 31)" data-ja="91（代替 31）">91 (fallback 31)</option>
+      <option value="31" data-th="95 (fallback 31)" data-en="95 (fallback 31)" data-ja="95（代替 31）">95 (fallback 31)</option>
+      <option value="custom" data-th="กรอกค่าเอง..." data-en="Enter manually..." data-ja="手入力...">กรอกค่าเอง...</option>
+    `;
+    if (updatedEl) updatedEl.textContent = '';
+  }
+}
+
+// 既存の setLang() を少し拡張（data-ja対応）
+const _origSetLang = setLang;
+setLang = function(lang) {
+  currentLang = lang;
+  document.body.className = 'lang-' + lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  document.querySelectorAll('option[data-th][data-en]').forEach(option => {
+    if (lang === 'th') option.textContent = option.getAttribute('data-th');
+    else if (lang === 'ja' && option.getAttribute('data-ja')) option.textContent = option.getAttribute('data-ja');
+    else option.textContent = option.getAttribute('data-en');
+  });
+
+  if (document.getElementById('resultPanel').classList.contains('visible')) calculate();
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadFuelPrices();
+});
 </body>
 </html>
