@@ -9,4 +9,3 @@
     "update:fuel": "node scripts/fetch-motorist-prices.mjs"
   }
 }
-``
