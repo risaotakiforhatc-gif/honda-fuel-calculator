@@ -1,1 +1,12 @@
-
+{
+  "name": "honda-fuel-calculator",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "scripts": {
+    "update:fuel": "node scripts/fetch-motorist-prices.mjs"
+  }
+}
+``
